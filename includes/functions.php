@@ -277,7 +277,7 @@ if (!function_exists('wcapf_list_terms')) {
 
 		if (sizeof($parent_terms) > 0) {
 			$html .= '<div class="wcapf-layered-nav">';
-			$html .= '<ul>';
+			$html .= '<ul class="wcapf-list">';
 
 			// store term ids from url for this attribute
 			// example: attra_size=9,29,45
@@ -331,42 +331,62 @@ if (!function_exists('wcapf_list_terms')) {
 				if ($count > 0 || $force_show === true) {
 					$found = true;
 
-					if (in_array($parent_term_id, $term_ids)) {
-						$html .= '<li class="chosen">';
-					} else {
-						$html .= '<li>';
-					}
+                    if ($color = get_field('color', $taxonomy . '_' . $parent_term_id)) {
+                        if (in_array($parent_term_id, $term_ids)) {
+                            $html .= '<li class="wcapf-list-item wcapf-list-item_color wcapf-list-item_chosen chosen">';
+                        } else {
+                            $html .= '<li class="wcapf-list-item wcapf-list-item_color">';
+                        }
 
-						$html .= '<a href="javascript:void(0)" data-key="' . $data_key . '" data-value="' . $parent_term_id . '" data-multiple-filter="' . $enable_multiple . '">' . $parent_term->name . '</a>';
+                        $html .= '<a class="wcapf-list-item__color" style="background-color: ' . $color . '" href="javascript:void(0)" data-key="' . $data_key . '" data-value="' . $parent_term_id . '" data-multiple-filter="' . $enable_multiple . '" title="' . $parent_term->name . '"></a>';
+                    } else {
+                        if (in_array($parent_term_id, $term_ids)) {
+                            $html .= '<li class="wcapf-list-item wcapf-list-item_chosen chosen">';
+                        } else {
+                            $html .= '<li class="wcapf-list-item">';
+                        }
 
-						if ($show_count === true) {
-							$html .= '<span class="count">(' . $count . ')</span>';
-						}
+                        $html .= '<a class="wcapf-list-item__link" href="javascript:void(0)" data-key="' . $data_key . '" data-value="' . $parent_term_id . '" data-multiple-filter="' . $enable_multiple . '">';
+                        $html .= '<span class="wcapf-list-item__title">' . $parent_term->name;
 
-						if (($enable_hierarchy === true && $show_children_only !== true) || ($show_children_only === true && (in_array($parent_term_id, $term_ids) || $force_show === true))) {
+                        if ($show_count === true) {
+                            $html .= ' - <span class="wcapf-list-item__count">' . num_decline($count, array('позиция', 'позиции', 'позиций')) . '</span>';
+                        }
 
-							if (sizeof($sub_term_ids) > 0) {
-								$sub_term_args = array(
-									'taxonomy'           => $taxonomy,
-									'data_key'           => $data_key,
-									'query_type'         => $query_type,
-									'enable_multiple'    => $enable_multiple,
-									'show_count'         => $show_count,
-									'enable_hierarchy'   => $enable_hierarchy,
-									'show_children_only' => $show_children_only,
-									'parent_term_id'     => $parent_term_id,
-									'sub_term_ids'       => $sub_term_ids,
-									'term_ids'           => $term_ids,
-									'ancestors'          => $ancestors
-								);
+                        $html .= '</span>';
 
-								$results = wcapf_list_sub_terms($sub_term_args, $found);
+                        if ($image = get_field('image', $taxonomy . '_' . $parent_term_id)) {
+                            $html .= '<span class="wcapf-list-item__image"><img src="' . $image['url'] . '" alt=""></span>';
+                        }
 
-								$html .= $results['html'];
-								$found = $results['found'];
-							}
+                        $html .= '<span class="wcapf-list-item__check"></span>';
+                        $html .= '</a>';
+                    }
 
-						}
+                    if (($enable_hierarchy === true && $show_children_only !== true) || ($show_children_only === true && (in_array($parent_term_id, $term_ids) || $force_show === true))) {
+
+                        if (sizeof($sub_term_ids) > 0) {
+                            $sub_term_args = array(
+                                'taxonomy'           => $taxonomy,
+                                'data_key'           => $data_key,
+                                'query_type'         => $query_type,
+                                'enable_multiple'    => $enable_multiple,
+                                'show_count'         => $show_count,
+                                'enable_hierarchy'   => $enable_hierarchy,
+                                'show_children_only' => $show_children_only,
+                                'parent_term_id'     => $parent_term_id,
+                                'sub_term_ids'       => $sub_term_ids,
+                                'term_ids'           => $term_ids,
+                                'ancestors'          => $ancestors
+                            );
+
+                            $results = wcapf_list_sub_terms($sub_term_args, $found);
+
+                            $html .= $results['html'];
+                            $found = $results['found'];
+                        }
+
+                    }
 
 					$html .= '</li>';
 				}
@@ -636,13 +656,13 @@ if (!function_exists('wcapf_dropdown_terms')) {
 }
 
 /**
- * wcapf_range_terms function
+ * wcapf_slider_terms function
  *
  * @param  array $attr_args
  * @return mixed
  */
-if (!function_exists('wcapf_range_terms')) {
-	function wcapf_range_terms($attr_args) {
+if (!function_exists('wcapf_slider_terms')) {
+	function wcapf_slider_terms($attr_args) {
 		global $wcapf;
 		$filtered_product_ids = $wcapf->filteredProductIds();
 		$unfiltered_product_ids = $wcapf->unfilteredProductIds();

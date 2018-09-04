@@ -7,7 +7,7 @@ jQuery(document).ready(function($) {
 	// store widget ids those will be replaced with new data
 	var widgets = {};
 
-	$('.wcapf-ajax-term-filter').each(function(index) {
+	$('.wcapf-ajax-filter_list').each(function(index) {
 		var widget_id = $(this).attr('id');
 		widgets[index] = widget_id;
 	});
@@ -288,7 +288,7 @@ jQuery(document).ready(function($) {
 	}
 
 	// handle the filter request
-	$('.wcapf-ajax-term-filter').not('.wcapf-price-filter-widget').on('click', 'li a', function(event) {
+	$('.wcapf-ajax-filter_list').not('.wcapf-ajax-filter_price').on('click', 'li a', function(event) {
 		event.preventDefault();
 		var element = $(this),
 			filter_key = element.attr('data-key'),
@@ -304,7 +304,7 @@ jQuery(document).ready(function($) {
 	});
 
 	// handle the filter request for price filter display type list
-	$('.wcapf-price-filter-widget.wcapf-ajax-term-filter').on('click', 'li a', function(event) {
+	$('.wcapf-ajax-filter_price.wcapf-ajax-filter_list').on('click', 'li a', function(event) {
 		event.preventDefault();
 		var element = $(this),
 			filter_key_min = element.attr('data-key-min'),
@@ -484,8 +484,13 @@ jQuery(document).ready(function($) {
       var args = {
         type: "double",
         values: values,
+        grid: true,
         onFinish: function (data) {
-          wcapfUpdateQueryStringParameter(filter_key, ids.slice(data.from, data.to + 1).join(','));
+          if (data.from === 0 && data.to === values.length - 1) {
+            history.pushState({}, '', wcapfRemoveQueryStringParameter(filter_key));
+          } else {
+            wcapfUpdateQueryStringParameter(filter_key, ids.slice(data.from, data.to + 1).join(','));
+          }
 
           // filter products
           wcapfFilterProducts();

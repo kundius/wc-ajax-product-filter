@@ -377,15 +377,8 @@ if (!class_exists('WCAPF')) {
 
 			// 99% copy of WC_Query
 			if (sizeof($chosen_filters) > 0) {
-				$matched_products = array(
-					'and' => array(),
-					'or'  => array()
-				);
-
-				$filtered_attribute = array(
-					'and' => false,
-					'or'  => false
-				);
+				$matched_products = array();
+				$filtered_attribute = false;
 
 				foreach ($chosen_filters as $attribute => $data) {
 					$matched_products_from_attribute = array();
@@ -410,11 +403,12 @@ if (!class_exists('WCAPF')) {
 								)
 							);
 
+                            // сложение или пересечение массивов продуктов для каждого термина поочередно
 							if (!is_wp_error($posts)) {
 								if (sizeof($matched_products_from_attribute) > 0 || $filtered) {
 									$matched_products_from_attribute = ($data['query_type'] === 'or') ? array_merge($posts, $matched_products_from_attribute) : array_intersect($posts, $matched_products_from_attribute);
 								} else {
-									$matched_products_from_attribute = $posts;
+									$matched_products_from_attribute = $posts; // первая итерация
 								}
 
 								$filtered = true;
@@ -422,23 +416,18 @@ if (!class_exists('WCAPF')) {
 						}
 					}
 
-					if (sizeof($matched_products[$data['query_type']]) > 0 || $filtered_attribute[$data['query_type']] === true) {
-						$matched_products[$data['query_type']] = ($data['query_type'] === 'or') ? array_merge($matched_products_from_attribute, $matched_products[$data['query_type']]) : array_intersect($matched_products_from_attribute, $matched_products[$data['query_type']]);
+                    // пересечение массивов продуктов для каждого атрибута поочередно
+					if (sizeof($matched_products) > 0 || $filtered_attribute === true) {
+						$matched_products = array_intersect($matched_products_from_attribute, $matched_products);
 					} else {
-						$matched_products[$data['query_type']] = $matched_products_from_attribute;
+                        $matched_products = $matched_products_from_attribute; // первая итерация
 					}
 
-					$filtered_attribute[$data['query_type']] = true;
+					$filtered_attribute = true;
 				}
 
-				// combine our AND and OR result sets
-				if ($filtered_attribute['and'] && $filtered_attribute['or']) {
-					$results = array_intersect($matched_products['and'], $matched_products['or']);
-					$results[] = 0;
-				} else {
-					$results = array_merge($matched_products['and'], $matched_products['or']);
-					$results[] = 0;
-				}
+                $results = $matched_products;
+                $results[] = 0;
 			}
 
 			return $results;

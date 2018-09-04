@@ -200,11 +200,7 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 			// Add class to before_widget from within a custom widget
 			// http://wordpress.stackexchange.com/questions/18942/add-class-to-before-widget-from-within-a-custom-widget
 
-			if ($display_type === 'slider') {
-				$widget_class = 'woocommerce wcapf-price-filter-widget';
-			} else {
-				$widget_class = 'woocommerce wcapf-price-filter-widget wcapf-ajax-term-filter';
-			}
+            $widget_class = 'wcapf-ajax-filter wcapf-ajax-filter_price wcapf-ajax-filter_' . $display_type;
 
 			// no class found, so add it
 			if (strpos($before_widget, 'class') === false) {

@@ -1,4 +1,4 @@
-.wcapf-widget-hidden {
+.wcapf-ajax-filter_hidden {
 	display: none;
 }
 
@@ -18,7 +18,7 @@
 }
 
 /*layered nav*/
-.wcapf-layered-nav ul {
+/*.wcapf-layered-nav ul {
 	list-style: none;
 	margin-left: 0;
 	padding: 0;
@@ -42,16 +42,7 @@
 }
 .wcapf-layered-nav .children {
 	margin: 0.618em 0 0 1.618em!important;
-}
-
-/*price slider*/
-.wcapf-price-filter-wrapper {
-	padding-top: 15px;
-}
-.wcapf-price-filter-wrapper .slider-values p {
-	margin: 0;
-	padding: 0;
-}
+}*/
 
 /*before updating shop loop styles*/
 .wcapf-before-products {
