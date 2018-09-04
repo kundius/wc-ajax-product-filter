@@ -202,6 +202,10 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 
             $widget_class = 'wcapf-ajax-filter wcapf-ajax-filter_price wcapf-ajax-filter_' . $display_type;
 
+            if (!empty($_GET['min-price']) || !empty($_GET['max-price'])) {
+                $widget_class .= ' uk-open';
+            }
+
 			// no class found, so add it
 			if (strpos($before_widget, 'class') === false) {
 				$before_widget = str_replace('>', 'class="' . $widget_class . '"', $before_widget);

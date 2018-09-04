@@ -132,6 +132,7 @@ if (!class_exists('WCAPF')) {
 			require_once 'widgets/widget-attribute-filter.php';
 			require_once 'widgets/widget-price-filter.php';
 			require_once 'widgets/widget-active-filter.php';
+			require_once 'widgets/widget-dimensions-filter.php';
 		}
 
 		/**
@@ -177,6 +178,7 @@ if (!class_exists('WCAPF')) {
 			wp_register_script('wcapf-ion-rangeslider-script', WCAPF_ASSETS_PATH . 'node_modules/ion-rangeslider/js/ion.rangeSlider.min.js', array ('jquery'), '1.0', true);
 
 			wp_register_script('wcapf-price-filter-script', WCAPF_ASSETS_PATH . 'js/price-filter.js', array ('jquery'), '1.0', true);
+			wp_register_script('wcapf-dimensions-filter-script', WCAPF_ASSETS_PATH . 'js/dimensions-filter.js', array ('jquery'), '1.0', true);
 
 			wp_register_style('wcapf-select2', WCAPF_ASSETS_PATH . 'css/select2.css');
 			wp_register_script('wcapf-select2', WCAPF_ASSETS_PATH . 'js/select2.min.js', array ('jquery'), '1.0', true);
@@ -269,6 +271,10 @@ if (!class_exists('WCAPF')) {
 			return $input;
 		}
 
+		public function getDimensionsFields() {
+		    return array('_length', '_width', '_height', '_weight');
+        }
+
 		/**
 		 * Get chosen filters.
 		 *
@@ -297,30 +303,36 @@ if (!class_exists('WCAPF')) {
 			}
 
 			foreach ($query as $key => $value) {
-				// attribute
-				if (preg_match('/^attr/', $key) && !empty($query[$key])) {
-					$terms = explode(',', $value);
-					$new_key = str_replace(array('attra-', 'attro-'), '', $key);
-					$taxonomy = 'pa_' . $new_key;
+                // attribute
+                if (preg_match('/^attr/', $key) && !empty($query[$key])) {
+                    $terms = explode(',', $value);
+                    $new_key = str_replace(array('attra-', 'attro-'), '', $key);
+                    $taxonomy = 'pa_' . $new_key;
 
-					if (preg_match('/^attra/', $key)) {
-						$query_type = 'and';
-					} else {
-						$query_type = 'or';
-					}
+                    if (preg_match('/^attra/', $key)) {
+                        $query_type = 'and';
+                    } else {
+                        $query_type = 'or';
+                    }
 
-					$chosen[$taxonomy] = array(
-						'terms'      => $terms,
-						'query_type' => $query_type
-					);
+                    $chosen[$taxonomy] = array(
+                        'terms'      => $terms,
+                        'query_type' => $query_type
+                    );
 
-					foreach ($terms as $term_id) {
-						$ancestors = wcapf_get_term_ancestors($term_id, $taxonomy);
-						$term_data = wcapf_get_term_data($term_id, $taxonomy);
-						$term_ancestors[$key][] = $ancestors;
-						$active_filters['term'][$key][$term_id] = $term_data->name;
-					}
-				}
+                    foreach ($terms as $term_id) {
+                        $ancestors = wcapf_get_term_ancestors($term_id, $taxonomy);
+                        $term_data = wcapf_get_term_data($term_id, $taxonomy);
+                        $term_ancestors[$key][] = $ancestors;
+                        $active_filters['term'][$key][$term_id] = $term_data->name;
+                    }
+                }
+
+                // dimensions
+                if (in_array(str_replace(array('min-', 'max-'), '', $key), $this->getDimensionsFields()) && !empty($query[$key])) {
+                    $new_key = str_replace('min-', 'min', str_replace('max-', 'max', $key));
+                    $active_filters[$new_key] = $value;
+                }
 
 				// category
 				if (preg_match('/product-cat/', $key) && !empty($query[$key])) {
@@ -452,6 +464,27 @@ if (!class_exists('WCAPF')) {
 					'rating_filter' => true,
 				);
 			}
+
+            // dimensions filter
+            foreach ($this->getDimensionsFields() as $dimension) {
+                if (isset($_GET['min-' . $dimension]) || isset($_GET['max-' . $dimension])) {
+                    $unfiltered_range = $this->getMetaRange($dimension, false);
+                    if (sizeof($unfiltered_range) === 2) {
+                        $min = (!empty($_GET['min-' . $dimension])) ? (int)$_GET['min-' . $dimension] : '';
+                        $max = (!empty($_GET['max-' . $dimension])) ? (int)$_GET['max-' . $dimension] : '';
+
+                        $min = (!empty($min)) ? $min : (int)$unfiltered_range[0];
+                        $max = (!empty($max)) ? $max : (int)$unfiltered_range[1];
+                    }
+                    $meta_query[] = array(
+                        'key'           => $dimension,
+                        'value'         => array($min, $max),
+                        'type'          => 'numeric',
+                        'compare'       => 'BETWEEN',
+                        'price_filter'  => true,
+                    );
+                }
+            }
 
 			if (isset($_GET['min-price']) || isset($_GET['max-price'])) {
 				// price range for all published products
@@ -670,53 +703,52 @@ if (!class_exists('WCAPF')) {
 			return $filtered_product_ids;
 		}
 
-		/**
-		 * Find Prices for given products.
-		 *
-		 * @param  array $products
-		 * @return array
-		 */
-		public function findPriceRange($products)
-		{
-			$price_range = array();
+        /**
+         * @param  array $products
+         * @return array
+         */
+        public function findMetaRange($field, $products)
+        {
+            $range = array();
 
-			foreach ($products as $id) {
-				$meta_value = get_post_meta($id, '_price', true);
+            foreach ($products as $id) {
+                $meta_value = get_post_meta($id, $field, true);
 
-				if ($meta_value) {
-					$price_range[] = $meta_value;
-				}
+                if ($meta_value) {
+                    $range[] = $meta_value;
+                }
 
-				// for child posts
-				$product_variation = get_children(
-					array(
-						'post_type'   => 'product_variation',
-						'post_parent' => $id,
-						'numberposts' => -1
-					)
-				);
+                // for child posts
+                $product_variation = get_children(
+                    array(
+                        'post_type'   => 'product_variation',
+                        'post_parent' => $id,
+                        'numberposts' => -1
+                    )
+                );
 
-				if (sizeof($product_variation) > 0) {
-					foreach ($product_variation as $variation) {
-						$meta_value = get_post_meta($variation->ID, '_price', true);
-						if ($meta_value) {
-							$price_range[] = $meta_value;
-						}
-					}
-				}
-			}
+                if (sizeof($product_variation) > 0) {
+                    foreach ($product_variation as $variation) {
+                        $meta_value = get_post_meta($variation->ID, $field, true);
+                        if ($meta_value) {
+                            $range[] = $meta_value;
+                        }
+                    }
+                }
+            }
 
-			$price_range = array_unique($price_range);
+            $range = array_unique($range);
 
-			return $price_range;
-		}
+            return $range;
+        }
 
 		/**
 		 * Find price range for filtered products.
-		 *
+         *
+         * @param string $field
 		 * @return array
 		 */
-		public function filteredProductsPriceRange()
+		public function filteredProductsMetaRange($field)
 		{
 			$products = $this->filteredProductIds();
 
@@ -724,17 +756,18 @@ if (!class_exists('WCAPF')) {
 				return;
 			}
 
-			$filtered_products_price_range = $this->findPriceRange($products);
+			$filtered_products_range = $this->findMetaRange($field, $products);
 
-			return $filtered_products_price_range;
+			return $filtered_products_range;
 		}
 
 		/**
-		 * Find price range for unfiltered products.
-		 *
+		 * Find range for unfiltered products.
+         *
+		 * @param string $field
 		 * @return array
 		 */
-		public function unfilteredProductsPriceRange()
+		public function unfilteredProductsMetaRange($field)
 		{
 			$products = $this->unfilteredProductIds();
 
@@ -742,15 +775,15 @@ if (!class_exists('WCAPF')) {
 				return;
 			}
 
-			// get unfiltered products price range using transients
-			$transient_name = 'wcapf_unfiltered_product_price_range';
+			// get unfiltered products range using transients
+			$transient_name = 'wcapf_unfiltered_product' . $field . '_range';
 
-			if (false === ($unfiltered_products_price_range = get_transient($transient_name))) {
-				$unfiltered_products_price_range = $this->findPriceRange($products);
-				set_transient($transient_name, $unfiltered_products_price_range, wcapf_transient_lifespan());
+			if (false === ($unfiltered_products_range = get_transient($transient_name))) {
+				$unfiltered_products_range = $this->findMetaRange($field, $products);
+				set_transient($transient_name, $unfiltered_products_range, wcapf_transient_lifespan());
 			}
 
-			return $unfiltered_products_price_range;
+			return $unfiltered_products_range;
 		}
 
 		/**
@@ -764,9 +797,9 @@ if (!class_exists('WCAPF')) {
 		public function getPriceRange($filtered = true)
 		{
 			if ($filtered === true) {
-				$price_range = $this->filteredProductsPriceRange();
+				$price_range = $this->filteredProductsMetaRange('_price');
 			} else {
-				$price_range = $this->unfilteredProductsPriceRange();
+				$price_range = $this->unfilteredProductsMetaRange('_price');
 			}
 
 			if (is_array($price_range) && sizeof($price_range) >= 2) {
@@ -833,6 +866,40 @@ if (!class_exists('WCAPF')) {
 				return array();
 			}
 		}
+
+        public function getMetaRange($field, $filtered = true)
+        {
+            if ($filtered === true) {
+                $range = $this->filteredProductsMetaRange($field);
+            } else {
+                $range = $this->unfilteredProductsMetaRange($field);
+            }
+
+            if (is_array($range) && sizeof($range) >= 2) {
+                $min = $max = false;
+
+                foreach ($range as $row) {
+                    if ($min === false || $min > (int)$row) {
+                        $min = floor($row);
+                    }
+
+                    if ($max === false || $max < (int)$row) {
+                        $max = ceil($row);
+                    }
+                }
+
+                if ($min == $max) {
+                    // empty array
+                    return array();
+                } else {
+                    // array with min and max values
+                    return array($min, $max);
+                }
+            } else {
+                // empty array
+                return array();
+            }
+        }
 
 		/**
 		 * HTML wrapper to insert before the shop loop.
