@@ -301,6 +301,14 @@ if (!function_exists('wcapf_list_terms')) {
 
 			$ancestors = array_unique($ancestors);
 
+            // надстройки для атрибутов
+//            $by_name = array();
+//            $types = get_field('product_attribute_types', 'option');
+//            foreach ($types as $type) {
+//                $by_name['pa_' . $type['field']] = $type;
+//            }
+//            $hide_default = !empty($by_name[$taxonomy]['hide_default']) ? (bool) $by_name[$taxonomy]['hide_default'] : false;
+
 			foreach ($parent_terms as $parent_term) {
 				$parent_term_id = $parent_term->term_id;
 				// get sub term ids for this term

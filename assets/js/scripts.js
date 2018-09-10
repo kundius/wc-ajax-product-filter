@@ -37,7 +37,7 @@ jQuery(document).ready(function($) {
 			$(markup).prependTo(holder);
 	
 			// scroll to top
-			if (typeof wcapf_params.scroll_to_top !== 'undefined' && wcapf_params.scroll_to_top == true) {
+			if (typeof wcapf_params.scroll_to_top !== 'undefined' && wcapf_params.scroll_to_top == true && window.matchMedia("(min-width: 768px)").matches) {
 				var scroll_to_top_offset,
 					top_scroll_offset;
 
