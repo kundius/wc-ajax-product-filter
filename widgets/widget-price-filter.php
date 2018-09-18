@@ -47,8 +47,8 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 			}
 
 			if (sizeof($filtered_price_range) === 2) {
-				$available_min_val = $filtered_price_range[0];
-				$available_max_val = $filtered_price_range[1];
+				$min_val = $filtered_price_range[0];
+				$max_val = $filtered_price_range[1];
 			}
 
 			// display type, slider or list

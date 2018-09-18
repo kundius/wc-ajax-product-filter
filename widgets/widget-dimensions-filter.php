@@ -47,8 +47,8 @@ if (!class_exists('WCAPF_Dimensions_Filter_Widget')) {
             }
 
 			if (sizeof($filtered_range) === 2) {
-				$available_min_val = $filtered_range[0];
-				$available_max_val = $filtered_range[1];
+				$min_val = $filtered_range[0];
+				$max_val = $filtered_range[1];
 			}
 
             // required scripts
