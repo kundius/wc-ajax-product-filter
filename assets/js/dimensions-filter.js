@@ -31,4 +31,5 @@ jQuery(document).ready(function($) {
 
   // initialize price slider
   wcapfInitDimensionsSlider();
+	$(document).on('wcapf:widget_update', wcapfInitDimensionsSlider);
 });

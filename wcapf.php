@@ -666,7 +666,7 @@ if (!class_exists('WCAPF')) {
 		 *
 		 * @return array
 		 */
-		public function filteredProductIds()
+		public function filteredProductIds($field = false)
 		{
 			global $wp_query;
 			$current_query = $wp_query;
@@ -674,10 +674,14 @@ if (!class_exists('WCAPF')) {
 			if (!is_object($current_query) && !is_main_query() && !is_post_type_archive('product') && !is_tax(get_object_taxonomies('product'))) {
 				return;
 			}
-
 			$modified_query = $current_query->query;
 			unset($modified_query['paged']);
 			$meta_query = (key_exists('meta_query', $current_query->query_vars)) ? $current_query->query_vars['meta_query'] : array();
+			if ($field) {
+				$meta_query = array_filter($meta_query, function($row) use ($field) {
+					return $row['key'] != $field;
+				});
+			}
 			$tax_query = (key_exists('tax_query', $current_query->query_vars)) ? $current_query->query_vars['tax_query'] : array();
 			$post__in = (key_exists('post__in', $current_query->query_vars)) ? $current_query->query_vars['post__in'] : array();
 
@@ -750,7 +754,7 @@ if (!class_exists('WCAPF')) {
 		 */
 		public function filteredProductsMetaRange($field)
 		{
-			$products = $this->filteredProductIds();
+			$products = $this->filteredProductIds($field);
 
 			if (sizeof($products) < 1) {
 				return;

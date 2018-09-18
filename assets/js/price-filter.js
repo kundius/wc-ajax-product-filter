@@ -61,4 +61,5 @@ jQuery(document).ready(function($) {
 
 	// initialize price slider
 	wcapfInitPriceSlider();
+	$(document).on('wcapf:widget_update', wcapfInitPriceSlider);
 });

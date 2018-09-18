@@ -39,11 +39,16 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 			$html = '';
 
 			// to be sure that these values are number
-			$min_val = $max_val = null;
+			$min_val = $max_val = $available_min_val = $available_max_val = null;
 
 			if (sizeof($unfiltered_price_range) === 2) {
 				$min_val = $unfiltered_price_range[0];
 				$max_val = $unfiltered_price_range[1];
+			}
+
+			if (sizeof($filtered_price_range) === 2) {
+				$available_min_val = $filtered_price_range[0];
+				$available_max_val = $filtered_price_range[1];
 			}
 
 			// display type, slider or list
@@ -94,18 +99,24 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 				$html .= '<div class="wcapf-price-filter-wrapper">';
 					$attr = '';
 					if ($min_val !== null) {
-                        $attr .= ' data-min="' . $min_val . '"';
-                    }
+							$attr .= ' data-min="' . $min_val . '"';
+					}
 					if ($max_val !== null) {
-                        $attr .= ' data-max="' . $max_val . '"';
-                    }
+							$attr .= ' data-max="' . $max_val . '"';
+					}
+					if ($available_min_val !== null) {
+							$attr .= ' data-from-min="' . $available_min_val . '"';
+					}
+					if ($available_max_val !== null) {
+							$attr .= ' data-to-max="' . $available_max_val . '"';
+					}
 					if ($set_min_val !== null) {
-                        $attr .= ' data-from="' . $set_min_val . '"';
-                    }
+							$attr .= ' data-from="' . $set_min_val . '"';
+					}
 					if ($set_max_val !== null) {
-                        $attr .= ' data-to="' . $set_max_val . '"';
-                    }
-                    $html .= '<input id="wcapf-noui-slider" ' . $attr . '/>';
+							$attr .= ' data-to="' . $set_max_val . '"';
+					}
+					$html .= '<input id="wcapf-noui-slider" ' . $attr . '/>';
 				$html .= '</div>';
 			}
 
@@ -202,7 +213,7 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 
             $widget_class = 'wcapf-ajax-filter wcapf-ajax-filter_price wcapf-ajax-filter_' . $display_type;
 
-            if (!empty($_GET['min-price']) || !empty($_GET['max-price'])) {
+            if (!empty($_GET['min-price']) || !empty($_GET['max-price']) || $instance['open_by_default']) {
                 $widget_class .= ' uk-open';
             }
 
@@ -250,6 +261,10 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 				<input id="<?php echo $this->get_field_id('show_currency'); ?>" name="<?php echo $this->get_field_name('show_currency'); ?>" type="checkbox" value="1" <?php echo (!empty($instance['show_currency']) && $instance['show_currency'] == true) ? 'checked="checked"' : ''; ?>>
 				<label for="<?php echo $this->get_field_id('show_currency'); ?>"><?php printf(__('Show currency', 'wcapf')); ?></label>
 			</p>
+            <p>
+                <input id="<?php echo $this->get_field_id('open_by_default'); ?>" name="<?php echo $this->get_field_name('open_by_default'); ?>" type="checkbox" value="1" <?php echo (!empty($instance['open_by_default']) && $instance['open_by_default'] == true) ? 'checked="checked"' : ''; ?>>
+                <label for="<?php echo $this->get_field_id('open_by_default'); ?>"><?php printf(__('Open By Default', 'wcapf')); ?></label>
+            </p>
 			<div class="price-list-wrapper <?php echo (!isset($instance['display_type']) || $instance['display_type'] === 'slider') ? 'hidden' : ''; ?>">
 				<?php if (isset($instance['price_list']) && !empty($instance['price_list'])): ?>
 					<?php foreach ($instance['price_list'] as $price_list): ?>
@@ -356,6 +371,7 @@ if (!class_exists('WCAPF_Price_Filter_Widget')) {
 			$instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
 			$instance['display_type'] = (!empty($new_instance['display_type'])) ? strip_tags($new_instance['display_type']) : '';
 			$instance['show_currency'] = (!empty($new_instance['show_currency'])) ? strip_tags($new_instance['show_currency']) : '';
+			$instance['open_by_default'] = (!empty($new_instance['open_by_default'])) ? strip_tags($new_instance['open_by_default']) : '';
 
 			// price list
 			if (isset($new_instance['price_list'])) {

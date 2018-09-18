@@ -39,12 +39,17 @@ if (!class_exists('WCAPF_Dimensions_Filter_Widget')) {
             $html = '';
 
             // to be sure that these values are number
-            $min_val = $max_val = null;
+			$min_val = $max_val = $available_min_val = $available_max_val = null;
 
             if (sizeof($unfiltered_range) === 2) {
                 $min_val = $unfiltered_range[0];
                 $max_val = $unfiltered_range[1];
             }
+
+			if (sizeof($filtered_range) === 2) {
+				$available_min_val = $filtered_range[0];
+				$available_max_val = $filtered_range[1];
+			}
 
             // required scripts
             // enqueue necessary scripts
@@ -82,6 +87,12 @@ if (!class_exists('WCAPF_Dimensions_Filter_Widget')) {
             if ($set_max_val !== null) {
                 $attr .= ' data-to="' . $set_max_val . '"';
             }
+            if ($available_min_val !== null) {
+                    $attr .= ' data-from-min="' . $available_min_val . '"';
+            }
+            if ($available_max_val !== null) {
+                    $attr .= ' data-to-max="' . $available_max_val . '"';
+            }
             $html .= '<input class="wcapf-dimensions-slider" ' . $attr . ' name="' . $instance['attr_name'] . '"/>';
             $html .= '</div>';
 
@@ -92,7 +103,7 @@ if (!class_exists('WCAPF_Dimensions_Filter_Widget')) {
 
             $widget_class = 'wcapf-ajax-filter wcapf-ajax-filter_dimensions wcapf-ajax-filter_slider';
 
-            if (!empty($_GET['min-' . $instance['attr_name']]) || !empty($_GET['max-' . $instance['attr_name']])) {
+            if (!empty($_GET['min-' . $instance['attr_name']]) || !empty($_GET['max-' . $instance['attr_name']]) || $instance['open_by_default']) {
                 $widget_class .= ' uk-open';
             }
 
@@ -138,6 +149,10 @@ if (!class_exists('WCAPF_Dimensions_Filter_Widget')) {
                     <option value="_weight" <?php echo ((!empty($instance['attr_name']) && $instance['attr_name'] === '_weight') ? 'selected="selected"' : ''); ?>><?php printf(__('Weight', 'wcapf')); ?></option>
                 </select>
             </p>
+            <p>
+                <input id="<?php echo $this->get_field_id('open_by_default'); ?>" name="<?php echo $this->get_field_name('open_by_default'); ?>" type="checkbox" value="1" <?php echo (!empty($instance['open_by_default']) && $instance['open_by_default'] == true) ? 'checked="checked"' : ''; ?>>
+                <label for="<?php echo $this->get_field_id('open_by_default'); ?>"><?php printf(__('Open By Default', 'wcapf')); ?></label>
+            </p>
             <?php
         }
 
@@ -155,6 +170,7 @@ if (!class_exists('WCAPF_Dimensions_Filter_Widget')) {
             $instance = array();
             $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
             $instance['attr_name'] = (!empty($new_instance['attr_name'])) ? strip_tags($new_instance['attr_name']) : '';
+            $instance['open_by_default'] = (!empty($new_instance['open_by_default'])) ? strip_tags($new_instance['open_by_default']) : '';
             return $instance;
         }
     }

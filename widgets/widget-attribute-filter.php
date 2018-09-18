@@ -41,6 +41,7 @@ if (!class_exists('WCAPF_Attribute_Filter_Widget')) {
 			$show_count = (!empty($instance['show_count'])) ? (bool)$instance['show_count'] : '';
 			$enable_hierarchy = (!empty($instance['hierarchical'])) ? (bool)$instance['hierarchical'] : '';
 			$show_children_only = (!empty($instance['show_children_only'])) ? (bool)$instance['show_children_only'] : '';
+			$open_by_default = (!empty($instance['open_by_default'])) ? (bool)$instance['open_by_default'] : '';
 			$display_type = (!empty($instance['display_type'])) ? $instance['display_type'] : '';
 
 			$attribute_name = $instance['attr_name'];
@@ -60,6 +61,7 @@ if (!class_exists('WCAPF_Attribute_Filter_Widget')) {
 				'show_count'         => $show_count,
 				'enable_hierarchy'   => $enable_hierarchy,
 				'show_children_only' => $show_children_only,
+				'open_by_default'    => $open_by_default,
 				'url_array'          => $url_array
 			);
 
@@ -92,7 +94,7 @@ if (!class_exists('WCAPF_Attribute_Filter_Widget')) {
             if ($found === false) {
                 $widget_class .= ' wcapf-ajax-filter_hidden';
             }
-            if (!empty($_GET[$data_key])) {
+            if (!empty($_GET[$data_key]) || $open_by_default) {
                 $widget_class .= ' uk-open';
             }
 
@@ -180,6 +182,10 @@ if (!class_exists('WCAPF_Attribute_Filter_Widget')) {
                     <input id="<?php echo $this->get_field_id('show_children_only'); ?>" name="<?php echo $this->get_field_name('show_children_only'); ?>" type="checkbox" value="1" <?php echo (!empty($instance['show_children_only']) && $instance['show_children_only'] == true) ? 'checked="checked"' : ''; ?>>
                     <label for="<?php echo $this->get_field_id('show_children_only'); ?>"><?php printf(__('Only show children of the current attribute', 'wcapf')); ?></label>
                 </p>
+                <p>
+                    <input id="<?php echo $this->get_field_id('open_by_default'); ?>" name="<?php echo $this->get_field_name('open_by_default'); ?>" type="checkbox" value="1" <?php echo (!empty($instance['open_by_default']) && $instance['open_by_default'] == true) ? 'checked="checked"' : ''; ?>>
+                    <label for="<?php echo $this->get_field_id('open_by_default'); ?>"><?php printf(__('Open By Default', 'wcapf')); ?></label>
+                </p>
             </div>
 			<?php
 		}
@@ -204,6 +210,7 @@ if (!class_exists('WCAPF_Attribute_Filter_Widget')) {
 			$instance['show_count'] = (!empty($new_instance['show_count'])) ? strip_tags($new_instance['show_count']) : '';
 			$instance['hierarchical'] = (!empty($new_instance['hierarchical'])) ? strip_tags($new_instance['hierarchical']) : '';
 			$instance['show_children_only'] = (!empty($new_instance['show_children_only'])) ? strip_tags($new_instance['show_children_only']) : '';
+			$instance['open_by_default'] = (!empty($new_instance['open_by_default'])) ? strip_tags($new_instance['open_by_default']) : '';
 			return $instance;
 		}
 	}

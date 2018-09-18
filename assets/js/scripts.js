@@ -7,7 +7,7 @@ jQuery(document).ready(function($) {
 	// store widget ids those will be replaced with new data
 	var widgets = {};
 
-	$('.wcapf-ajax-filter_list').each(function(index) {
+	$('.wcapf-ajax-filter').each(function(index) {
 		var widget_id = $(this).attr('id');
 		widgets[index] = widget_id;
 	});
@@ -15,7 +15,7 @@ jQuery(document).ready(function($) {
 	// scripts to run before updating shop loop
 	wcapfBeforeUpdate = function() {
 		var overlay_color;
-		
+
 		if (wcapf_params.overlay_bg_color.length) {
 			overlay_color = wcapf_params.overlay_bg_color;
 		} else {
@@ -35,7 +35,7 @@ jQuery(document).ready(function($) {
 		if (holder.length) {
 			// show loading image
 			$(markup).prependTo(holder);
-	
+
 			// scroll to top
 			if (typeof wcapf_params.scroll_to_top !== 'undefined' && wcapf_params.scroll_to_top == true && window.matchMedia("(min-width: 768px)").matches) {
 				var scroll_to_top_offset,
@@ -48,12 +48,12 @@ jQuery(document).ready(function($) {
 				}
 
 				top_scroll_offset = $(holder).offset().top - scroll_to_top_offset;
-				
+
 				if (top_scroll_offset < 0) {
 					top_scroll_offset = 0;
 				}
 
-				$('html, body').animate({scrollTop: top_scroll_offset}, 'slow');		
+				$('html, body').animate({scrollTop: top_scroll_offset}, 'slow');
 			}
 		}
 
@@ -75,12 +75,14 @@ jQuery(document).ready(function($) {
 			// replace widgets data with new data
 			$.each(widgets, function(index, id) {
 				var single_widget = $data.find('#' + id),
-					single_widget_class = $(single_widget).attr('class');
+					single_widget_class = $(single_widget).attr('class'),
+					current_widget = $('#' + id);
 
 				// update class
-				$('#' + id).attr('class', single_widget_class);
+				current_widget.attr('class', single_widget_class);
 				// update widget
-				$('#' + id).html(single_widget.html());
+				current_widget.html(single_widget.html());
+				$(document).trigger('wcapf:widget_update', current_widget);
 			});
 
 			// replace old shop loop with new one
@@ -170,7 +172,7 @@ jQuery(document).ready(function($) {
 		var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i"),
 			separator = url.indexOf('?') !== -1 ? "&" : "?",
 			url_with_query;
-		
+
 		if (url.match(re)) {
 			url_with_query = url.replace(re, '$1' + key + "=" + value + '$2');
 		}
@@ -227,7 +229,7 @@ jQuery(document).ready(function($) {
 
 		// update url
 		history.pushState({}, '', query);
-		
+
 		// filter products
 		wcapfFilterProducts();
 	}
@@ -243,11 +245,11 @@ jQuery(document).ready(function($) {
 		} else {
 			params = wcapfGetUrlVars();
 		}
-	
+
 		if (typeof params[filter_key] != 'undefined') {
 			var prev_vals = params[filter_key],
 				prev_vals_array = prev_vals.split(',');
-			
+
 			if (prev_vals.length > 0) {
 				var found = jQuery.inArray(filter_val, prev_vals_array);
 
@@ -339,7 +341,7 @@ jQuery(document).ready(function($) {
 			event.preventDefault();
 			var location = $(this).attr('href');
 			history.pushState({}, '', location);
-			
+
 			// filter products
 			wcapfFilterProducts();
 		});
@@ -425,7 +427,7 @@ jQuery(document).ready(function($) {
 	function formatState(state) {
 	    var depth = $(state.element).attr('data-depth'),
 	    	$state = $('<span class="depth depth-' + depth + '">' + state.text + '</span>');
-		
+
 		return $state;
 	}
 
